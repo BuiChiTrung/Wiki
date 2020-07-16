@@ -1,0 +1,20 @@
+{% extends "encyclopedia/layout.html" %}
+
+{% block title %}
+    {{ title }}
+{% endblock %}
+
+{% block body %} 
+    <h1>Create new content using <a href = "https://www.markdownguide.org/basic-syntax/">markdown syntax</a></h1>
+    {% include "encyclopedia/messages.html" %}
+    <form action = '{% url "encyclopedia:new" %}' method = "POST" id = "new">
+        {% csrf_token %}
+        <div class = "form-group">
+            <input class = "form-control" name = "title" placeholder = "Page Title"> <br>
+            <textarea name = "content" form = "new">{{ content }}</textarea> <br>
+            <button class = "btn btn-outline-secondary">Save</button>
+            
+        </div>
+    </form>
+    
+{% endblock %}

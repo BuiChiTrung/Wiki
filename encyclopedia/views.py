@@ -12,6 +12,7 @@ def create_random_entry():
     return random.choice(util.list_entries())
 
 
+"""Home page"""
 def index(request):
     random_entry = './wiki/' + create_random_entry()
 
@@ -34,7 +35,7 @@ def index(request):
 
         # One entry match
         elif len(entries) == 1:
-            return HttpResponseRedirect(f'/wiki/{entries[0]}')
+            return HttpResponseRedirect(reverse("encyclopedia:wiki", args=[entries[0]]))
         
         #Multiple entries match
         else:
@@ -46,6 +47,8 @@ def index(request):
         "entries": entries, "random_entry": random_entry, "heading": heading
     })
 
+
+"""Entry a page"""
 def wiki(request, title):
     random_entry = './' + create_random_entry()
 
@@ -62,4 +65,48 @@ def wiki(request, title):
 
     return render(request, "encyclopedia/wiki.html", {
         "html": html, "title": title.capitalize(), "random_entry": random_entry
+    })
+
+
+"""Create new page"""
+def new(request):
+    if request.method == "POST":
+        data = request.POST.copy()
+
+        title = data.get("title").lower()
+        content = data.get("content")
+
+        # Handle title bug
+        if title == "" or title in util.list_entries():
+            if title == "": messages.error(request, "Please type in your page's title")
+            else: messages.error(request, "Your title has been taken")
+            return render(request, "encyclopedia/new.html", {
+                "title":"Create New Page", "content": content
+            })
+
+        # Save
+        content = f"# {title.capitalize()}\n" + content
+        util.save_entry(title, content)
+        return HttpResponseRedirect(reverse("encyclopedia:wiki", args=[title]))
+
+    return render(request, "encyclopedia/new.html", {
+        "title":"Create New Page", "content": "Enter markdown content here"
+    })
+
+
+"""Edit entry"""
+def edit(request, title):
+    title = title.lower()
+    content = util.get_entry(title)
+
+    # Get content from <textarea> and then save it
+    if request.method == "POST":
+        data = request.POST.copy()
+        content = data.get("edit")
+
+        util.save_entry(title, content)
+        return HttpResponseRedirect(reverse("encyclopedia:wiki", args=[title]))
+
+    return render(request, "encyclopedia/edit.html",{
+        "title": title.capitalize(), "content": content
     })
